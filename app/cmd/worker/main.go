@@ -35,8 +35,10 @@ func main() {
 	defer tc.Close()
 
 	wrk := worker.New(tc, "demo-protobuf-oneof", worker.Options{})
+	wrk.RegisterActivity(workflow.GetDisk)
 	wrk.RegisterActivity(workflow.ListDisks)
-	wrk.RegisterWorkflow(workflow.Decode)
+	wrk.RegisterWorkflow(workflow.DecodeDisk)
+	wrk.RegisterWorkflow(workflow.DecodeListDisks)
 	wrk.RegisterWorkflow(workflow.DecodeWithOptions)
 
 	if err := wrk.Run(worker.InterruptCh()); err != nil {

@@ -9,7 +9,26 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func Decode(ctx workflow.Context) error {
+func DecodeDisk(ctx workflow.Context) error {
+	lgr := workflow.GetLogger(ctx)
+	lgr.Info("workflow with default decode options started")
+
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Second,
+	})
+
+	var disk *compute.Disk
+
+	if err := workflow.ExecuteActivity(ctx, GetDisk, "trdc7u8s75v5je2gpoth").Get(ctx, &disk); err != nil {
+		return fmt.Errorf("failed to get compute disk: %w", err)
+	}
+
+	lgr.Info("disk", "diskId", disk.Id, "diskSource", disk.Source)
+
+	return nil
+}
+
+func DecodeListDisks(ctx workflow.Context) error {
 	lgr := workflow.GetLogger(ctx)
 	lgr.Info("workflow with default decode options started")
 
