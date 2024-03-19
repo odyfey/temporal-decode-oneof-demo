@@ -41,6 +41,10 @@ func main() {
 		slog.Error("decode workflow failed", "error", err)
 	}
 
+	if err := runDecodeListWorkflow(tc, queue); err != nil {
+		slog.Error("decode list workflow failed", "error", err)
+	}
+
 	if err := runDecodeWithOptionsWorkflow(tc, queue); err != nil {
 		slog.Error("decode with options workflow failed", "error", err)
 	}
@@ -52,7 +56,27 @@ func runDecodeWorkflow(tc T.Client, queue string) error {
 		TaskQueue: queue,
 	}
 
-	wr, err := tc.ExecuteWorkflow(context.Background(), opts, workflow.Decode)
+	wr, err := tc.ExecuteWorkflow(context.Background(), opts, workflow.DecodeDisk)
+	if err != nil {
+		return fmt.Errorf("failed to execute workflow: %w", err)
+	}
+
+	slog.Info("Decode workflow started", "WorkflowID", wr.GetID(), "RunID", wr.GetRunID())
+
+	if err = wr.Get(context.Background(), nil); err != nil {
+		return fmt.Errorf("failed to get workflow result: %w", err)
+	}
+
+	return nil
+}
+
+func runDecodeListWorkflow(tc T.Client, queue string) error {
+	opts := T.StartWorkflowOptions{
+		ID:        "decode_1",
+		TaskQueue: queue,
+	}
+
+	wr, err := tc.ExecuteWorkflow(context.Background(), opts, workflow.DecodeListDisks)
 	if err != nil {
 		return fmt.Errorf("failed to execute workflow: %w", err)
 	}
